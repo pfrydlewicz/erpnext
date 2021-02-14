@@ -228,12 +228,26 @@ class calculate_taxes_and_totals(object):
 	def calculate_net_total(self):
 		self.doc.total_qty = self.doc.total = self.doc.base_total = self.doc.net_total = self.doc.base_net_total = 0.0
 
+
 		for item in self.doc.get("items"):
 			self.doc.total += item.amount
 			self.doc.total_qty += item.qty
 			self.doc.base_total += item.base_amount
 			self.doc.net_total += item.net_amount
 			self.doc.base_net_total += item.base_net_amount
+
+		if self.doc.doctype in ["Sales Invoice"]:
+			invoice_factor = 1.0
+			remaining_factor = 0.0
+			if self.doc.is_partial_invoice == 1:
+				invoice_factor = float(self.doc.invoice_percentage) / 100.0
+				remaining_factor = 1 - invoice_factor
+				self.doc.remaining_partial_amount = self.doc.total * remaining_factor
+
+				self.doc.total *= invoice_factor
+				self.doc.base_total *= invoice_factor
+				self.doc.net_total *= invoice_factor
+				self.doc.base_net_total *= invoice_factor
 
 		self.doc.round_floats_in(self.doc, ["total", "base_total", "net_total", "base_net_total"])
 

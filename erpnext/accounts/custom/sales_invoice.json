@@ -1,0 +1,55 @@
+{
+ "custom_fields": [
+    {
+      "fieldname": "is_partial_invoice",
+      "insert_after": "is_return", 
+      "description": "Partial invoicing",
+      "fieldtype": "Check",
+      "label": "Is Partial Invoice",
+      "default": 0,
+      "dt": "Sales Invoice"
+    },
+    {
+      "fieldname": "partial_imvoice_section",
+      "insert_after": "due_date", 
+      "depends_on": "is_partial_invoice",
+      "fieldtype": "Section Break",
+      "label": "Partial Invoicing",
+      "dt": "Sales Invoice"
+    },
+    {
+      "fieldname": "invoice_percentage",
+      "insert_after": "partial_imvoice_section",
+      "depends_on": "is_partial_invoice", 
+      "description": "Partial invoicing",
+      "fieldtype": "Int",
+      "label": "Invoice Percentage",
+      "default": 100,
+      "dt": "Sales Invoice"
+    },
+    {
+      "fieldname": "partial_invoice_receivable_account",
+      "insert_after": "invoice_percentage",
+      "description": "The remaining amount will be debited to this receivable account.",
+      "fieldtype": "Link",
+      "options": "Account",
+      "label": "Remainder Receivable Account",
+      "dt": "Sales Invoice"
+    },
+    {
+      "fieldname": "remaining_partial_amount",
+      "insert_after": "total_net_weight", 
+      "depends_on": "is_partial_invoice",
+      "description": "Will be included in following partial invoice",
+      "fieldtype": "Currency",
+      "label": "Remaining Partial Amount",
+      "default": 0,
+      "read_only": 1,
+      "dt": "Sales Invoice"
+    }
+ ], 
+ "custom_perms": [], 
+ "doctype": "Sales Invoice", 
+ "property_setters": [], 
+ "sync_on_migrate": 1
+}

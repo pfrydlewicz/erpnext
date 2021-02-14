@@ -83,6 +83,7 @@ class SalesInvoice(SellingController):
 		self.validate_uom_is_integer("stock_uom", "stock_qty")
 		self.validate_uom_is_integer("uom", "qty")
 		self.check_sales_order_on_hold_or_close("sales_order")
+		self.validate_partial_invoice()
 		self.validate_debit_to_acc()
 		self.clear_unallocated_advances("Sales Invoice Advance", "advances")
 		self.add_remarks()
@@ -135,6 +136,10 @@ class SalesInvoice(SellingController):
 
 		if self.redeem_loyalty_points and self.loyalty_program and self.loyalty_points:
 			validate_loyalty_points(self, self.loyalty_points)
+
+	def validate_partial_invoice(self):
+		if self.doctype == "Sales Invoice":
+			pass
 
 	def validate_fixed_asset(self):
 		for d in self.get("items"):
