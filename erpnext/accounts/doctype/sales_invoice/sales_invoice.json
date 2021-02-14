@@ -24,6 +24,8 @@
   "amended_from",
   "returns",
   "return_against",
+  "is_partial_invoice",
+  "invoice_percentage",
   "column_break_21",
   "update_billed_amount_in_sales_order",
   "accounting_dimensions_section",
@@ -277,6 +279,25 @@
    "label": "Offline POS Name",
    "print_hide": 1,
    "read_only": 1
+  },
+  {
+    "default": "0",
+    "fieldname": "is_partial_invoice",
+    "fieldtype": "Check",
+    "label": "Is Partial Invoice",
+    "oldfieldname": "is_partial_invoice",
+    "oldfieldtype": "Check",
+    "print_hide": 1
+  },
+  {
+    "depends_on": "is_partial_invoice",
+    "fieldname": "invoice_percentage",
+    "fieldtype": "Int",
+    "label": "Invoice Percentage",
+    "default": 100,
+    "oldfieldname": "invoice_percentage",
+    "oldfieldtype": "Int",
+    "print_hide": 1
   },
   {
    "default": "0",
