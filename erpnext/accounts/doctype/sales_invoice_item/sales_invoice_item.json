@@ -39,6 +39,8 @@
   "section_break1",
   "rate",
   "amount",
+  "billing_percentage",
+  "billing_amount",
   "item_tax_template",
   "col_break3",
   "base_rate",

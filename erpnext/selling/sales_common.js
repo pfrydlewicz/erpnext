@@ -415,6 +415,15 @@ erpnext.selling.SellingController = erpnext.TransactionController.extend({
 			this.set_batch_number(cdt, cdn);
 		}
 	},
+	
+	billing_percentage: function(doc, cdt, cdn) {
+		this._super(doc, cdt, cdn);
+
+		if(in_list(['Delivery Note', 'Sales Invoice'], doc.doctype)) {
+			if (doc.doctype === 'Sales Invoice' && (!doc.update_stock)) return;
+			this.set_batch_number(cdt, cdn);
+		}
+	},
 
 	/* Determine appropriate batch number and set it in the form.
 	* @param {string} cdt - Document Doctype

@@ -767,6 +767,8 @@ class SalesInvoice(SellingController):
 
 		self.make_customer_gl_entry(gl_entries)
 
+		self.make_partial_gl_entry(gl_entries)
+
 		self.make_tax_gl_entries(gl_entries)
 
 		self.make_item_gl_entries(gl_entries)
@@ -802,6 +804,34 @@ class SalesInvoice(SellingController):
 					"debit": grand_total_in_company_currency,
 					"debit_in_account_currency": grand_total_in_company_currency \
 						if self.party_account_currency==self.company_currency else grand_total,
+					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
+					"against_voucher_type": self.doctype,
+					"cost_center": self.cost_center,
+					"project": self.project
+				}, self.party_account_currency, item=self)
+			)
+
+	def make_partial_gl_entry(self, gl_entries):
+		# Checked both rounding_adjustment and rounded_total
+		# because rounded_total had value even before introcution of posting GLE based on rounded total
+		#grand_total = self.rounded_total if (self.rounding_adjustment and self.rounded_total) else self.grand_total
+		remaining_total = self.remaining_partial_amount
+
+		if remaining_total:
+			# Didnot use base_grand_total to book rounding loss gle
+			remaining_total_in_company_currency = flt(remaining_total * self.conversion_rate,
+				self.precision("grand_total"))
+
+			gl_entries.append(
+				self.get_gl_dict({
+					"account": self.partial_invoice_recv_account,
+					"party_type": "Customer",
+					"party": self.customer,
+					"due_date": self.due_date,
+					"against": self.against_income_account,
+					"debit": remaining_total_in_company_currency,
+					"debit_in_account_currency": remaining_total_in_company_currency \
+						if self.party_account_currency==self.company_currency else remaining_total,
 					"against_voucher": self.return_against if cint(self.is_return) and self.return_against else self.name,
 					"against_voucher_type": self.doctype,
 					"cost_center": self.cost_center,

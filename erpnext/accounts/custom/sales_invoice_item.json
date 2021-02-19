@@ -1,0 +1,28 @@
+{
+ "custom_fields": [
+  {
+    "fieldname": "billing_percentage",
+    "fieldtype": "Percent",
+    "in_list_view": 0,
+    "label": "% Billing Amount",
+    "read_only": 1,
+    "default": 100,
+    "reqd": 1,
+    "dt": "Sales Invoice Item"
+   },
+  {
+    "columns": 2,
+    "fieldname": "billing_amount",
+    "fieldtype": "Currency",
+    "in_list_view": 1,
+    "label": "Billing Amount",
+    "read_only": 1,
+    "reqd": 1,
+    "dt": "Sales Invoice Item"
+   }
+ ], 
+ "custom_perms": [], 
+ "doctype": "Sales Invoice Item", 
+ "property_setters": [], 
+ "sync_on_migrate": 1
+}

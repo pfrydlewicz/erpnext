@@ -28,12 +28,13 @@
       "dt": "Sales Invoice"
     },
     {
-      "fieldname": "partial_invoice_receivable_account",
+      "fieldname": "partial_invoice_recv_account",
       "insert_after": "invoice_percentage",
       "description": "The remaining amount will be debited to this receivable account.",
       "fieldtype": "Link",
       "options": "Account",
       "label": "Remainder Receivable Account",
+      "print_hide": 1,
       "dt": "Sales Invoice"
     },
     {
