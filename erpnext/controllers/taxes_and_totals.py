@@ -124,7 +124,11 @@ class calculate_taxes_and_totals(object):
 
 				item.net_amount = item.amount
 
-				self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount"])
+				if item.doctype in ['Sales Invoice Item']:
+					item.net_billed_amount = item.billed_amount
+					self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount", "billed_amount", "net_billed_amount"])
+				else:
+					self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount"])
 
 				item.item_tax_amount = 0.0
 
@@ -227,27 +231,26 @@ class calculate_taxes_and_totals(object):
 
 	def calculate_net_total(self):
 		self.doc.total_qty = self.doc.total = self.doc.base_total = self.doc.net_total = self.doc.base_net_total = 0.0
+		self.doc.remaining_partial_amount = 0.0
+		if (self.doc.doctype in ["Sales Invoice"]) and (self.doc.is_partial_invoice == 1):
+			final_total = 0.0 # to support partial invoices
+			for item in self.doc.get("items"):
+				final_total += item.amount
+				self.doc.total += item.billed_amount
+				self.doc.total_qty += item.qty
+				self.doc.base_total += item.base_billed_amount
+				self.doc.net_total += item.net_billed_amount
+				self.doc.base_net_total += item.base_net_billed_amount
 
-
-		for item in self.doc.get("items"):
-			self.doc.total += item.amount
-			self.doc.total_qty += item.qty
-			self.doc.base_total += item.base_amount
-			self.doc.net_total += item.net_amount
-			self.doc.base_net_total += item.base_net_amount
-
-		if self.doc.doctype in ["Sales Invoice"]:
-			invoice_factor = 1.0
-			remaining_factor = 0.0
-			if self.doc.is_partial_invoice == 1:
-				invoice_factor = float(self.doc.invoice_percentage) / 100.0
-				remaining_factor = 1 - invoice_factor
-				self.doc.remaining_partial_amount = self.doc.total * remaining_factor
-
-				self.doc.total *= invoice_factor
-				self.doc.base_total *= invoice_factor
-				self.doc.net_total *= invoice_factor
-				self.doc.base_net_total *= invoice_factor
+			self.doc.remaining_partial_amount = final_total - self.doc.total
+		else:
+			for item in self.doc.get("items"):
+			# partial invoicing for other than sales invoice not supported
+				self.doc.total += item.amount
+				self.doc.total_qty += item.qty
+				self.doc.base_total += item.base_amount
+				self.doc.net_total += item.net_amount
+				self.doc.base_net_total += item.base_net_amount
 
 		self.doc.round_floats_in(self.doc, ["total", "base_total", "net_total", "base_net_total"])
 
@@ -331,21 +334,38 @@ class calculate_taxes_and_totals(object):
 		tax_rate = self._get_tax_rate(tax, item_tax_map)
 		current_tax_amount = 0.0
 
-		if tax.charge_type == "Actual":
-			# distribute the tax amount proportionally to each item row
-			actual = flt(tax.tax_amount, tax.precision("tax_amount"))
-			current_tax_amount = item.net_amount*actual / self.doc.net_total if self.doc.net_total else 0.0
+		if item.doctype in ['Sales Invoice Item']:
+			if tax.charge_type == "Actual":
+				# distribute the tax amount proportionally to each item row
+				actual = flt(tax.tax_amount, tax.precision("tax_amount"))
+				current_tax_amount = item.net_billed_amount*actual / self.doc.net_total if self.doc.net_total else 0.0
 
-		elif tax.charge_type == "On Net Total":
-			current_tax_amount = (tax_rate / 100.0) * item.net_amount
-		elif tax.charge_type == "On Previous Row Amount":
-			current_tax_amount = (tax_rate / 100.0) * \
-				self.doc.get("taxes")[cint(tax.row_id) - 1].tax_amount_for_current_item
-		elif tax.charge_type == "On Previous Row Total":
-			current_tax_amount = (tax_rate / 100.0) * \
-				self.doc.get("taxes")[cint(tax.row_id) - 1].grand_total_for_current_item
-		elif tax.charge_type == "On Item Quantity":
-			current_tax_amount = tax_rate * item.qty
+			elif tax.charge_type == "On Net Total":
+				current_tax_amount = (tax_rate / 100.0) * item.net_billed_amount
+			elif tax.charge_type == "On Previous Row Amount":
+				current_tax_amount = (tax_rate / 100.0) * \
+					self.doc.get("taxes")[cint(tax.row_id) - 1].tax_amount_for_current_item
+			elif tax.charge_type == "On Previous Row Total":
+				current_tax_amount = (tax_rate / 100.0) * \
+					self.doc.get("taxes")[cint(tax.row_id) - 1].grand_total_for_current_item
+			elif tax.charge_type == "On Item Quantity":
+				current_tax_amount = tax_rate * item.qty
+		else:
+			if tax.charge_type == "Actual":
+				# distribute the tax amount proportionally to each item row
+				actual = flt(tax.tax_amount, tax.precision("tax_amount"))
+				current_tax_amount = item.net_amount*actual / self.doc.net_total if self.doc.net_total else 0.0
+
+			elif tax.charge_type == "On Net Total":
+				current_tax_amount = (tax_rate / 100.0) * item.net_amount
+			elif tax.charge_type == "On Previous Row Amount":
+				current_tax_amount = (tax_rate / 100.0) * \
+					self.doc.get("taxes")[cint(tax.row_id) - 1].tax_amount_for_current_item
+			elif tax.charge_type == "On Previous Row Total":
+				current_tax_amount = (tax_rate / 100.0) * \
+					self.doc.get("taxes")[cint(tax.row_id) - 1].grand_total_for_current_item
+			elif tax.charge_type == "On Item Quantity":
+				current_tax_amount = tax_rate * item.qty
 
 		self.set_item_wise_tax(item, tax, tax_rate, current_tax_amount)
 

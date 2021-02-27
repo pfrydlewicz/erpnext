@@ -120,7 +120,7 @@ class SalesInvoice(SellingController):
 		self.set_against_income_account()
 		self.validate_c_form()
 		self.validate_time_sheets_are_submitted()
-		self.validate_multiple_billing("Delivery Note", "dn_detail", "amount", "items")
+		self.validate_multiple_billing("Delivery Note", "dn_detail", "billed_amount", "items")
 		if not self.is_return:
 			self.validate_serial_numbers()
 		self.update_packing_list()
@@ -1042,7 +1042,7 @@ class SalesInvoice(SellingController):
 		updated_delivery_notes = []
 		for d in self.get("items"):
 			if d.dn_detail:
-				billed_amt = frappe.db.sql("""select sum(amount) from `tabSales Invoice Item`
+				billed_amt = frappe.db.sql("""select sum(billed_amount) from `tabSales Invoice Item`
 					where dn_detail=%s and docstatus=1""", d.dn_detail)
 				billed_amt = billed_amt and billed_amt[0][0] or 0
 				frappe.db.set_value("Delivery Note Item", d.dn_detail, "billed_amt", billed_amt, update_modified=update_modified)

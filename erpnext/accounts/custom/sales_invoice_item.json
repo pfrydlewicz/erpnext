@@ -1,10 +1,10 @@
 {
  "custom_fields": [
   {
-    "fieldname": "billing_percentage",
+    "fieldname": "billed_percentage",
     "fieldtype": "Percent",
     "in_list_view": 0,
-    "label": "% Billing Amount",
+    "label": "% Billed Amount",
     "read_only": 1,
     "default": 100,
     "reqd": 1,
@@ -12,14 +12,35 @@
    },
   {
     "columns": 2,
-    "fieldname": "billing_amount",
+    "fieldname": "billed_amount",
     "fieldtype": "Currency",
     "in_list_view": 1,
-    "label": "Billing Amount",
+    "label": "Billed Amount",
     "read_only": 1,
     "reqd": 1,
     "dt": "Sales Invoice Item"
-   }
+   },
+   {
+     "fieldname": "base_billed_amount",
+     "fieldtype": "Currency",
+     "label": "Base Billed Amount",
+     "read_only": 1,
+     "dt": "Sales Invoice Item"
+    },
+    {
+      "fieldname": "net_billed_amount",
+      "fieldtype": "Currency",
+      "label": "Net Billed Amount",
+      "read_only": 1,
+      "dt": "Sales Invoice Item"
+     },
+     {
+       "fieldname": "base_net_billed_amount",
+       "fieldtype": "Currency",
+       "label": "Base Net Billed Amount",
+       "read_only": 1,
+       "dt": "Sales Invoice Item"
+      }
  ], 
  "custom_perms": [], 
  "doctype": "Sales Invoice Item", 

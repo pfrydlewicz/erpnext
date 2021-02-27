@@ -384,6 +384,30 @@ def get_invoiced_qty_map(delivery_note):
 
 	return invoiced_qty_map
 
+def get_invoiced_amount_map(delivery_note):
+	"""returns a map: {dn_detail: invoiced_amount}"""
+	invoiced_amount_map = {}
+
+	for dn_detail, b_amount in frappe.db.sql("""select dn_detail, billed_amount from `tabSales Invoice Item`
+		where delivery_note=%s and docstatus=1""", delivery_note):
+			if not invoiced_amount_map.get(dn_detail):
+				invoiced_amount_map[dn_detail] = 0
+			invoiced_amount_map[dn_detail] += b_amount
+
+	return invoiced_amount_map
+
+def get_invoiced_amt_map(delivery_note):
+	"""returns a map: {dn_detail: invoiced_amt}"""
+	invoiced_amt_map = {}
+
+	for dn_detail, amt in frappe.db.sql("""select dn_detail, billed_amount from `tabSales Invoice Item`
+		where delivery_note=%s and docstatus=1""", delivery_note):
+			if not invoiced_amt_map.get(dn_detail):
+				invoiced_amt_map[dn_detail] = 0
+			invoiced_amt_map[dn_detail] += amt
+
+	return invoiced_amt_map
+
 def get_returned_qty_map(delivery_note):
 	"""returns a map: {so_detail: returned_qty}"""
 	returned_qty_map = frappe._dict(frappe.db.sql("""select dn_item.dn_detail, abs(dn_item.qty) as qty
@@ -401,8 +425,12 @@ def make_sales_invoice(source_name, target_doc=None):
 	doc = frappe.get_doc('Delivery Note', source_name)
 
 	to_make_invoice_qty_map = {}
+	to_make_invoice_amt_map = {}
+	to_make_invoice_per_map = {}
+	to_make_invoice_partial = {}
 	returned_qty_map = get_returned_qty_map(source_name)
 	invoiced_qty_map = get_invoiced_qty_map(source_name)
+	invoiced_amount_map = get_invoiced_amount_map(source_name)
 
 	def set_missing_values(source, target):
 		target.ignore_pricing_rule = 1
@@ -426,30 +454,64 @@ def make_sales_invoice(source_name, target_doc=None):
 
 	def update_item(source_doc, target_doc, source_parent):
 		target_doc.qty = to_make_invoice_qty_map[source_doc.name]
+		#target_doc.billing_amount = to_make_invoice_amt_map[source_doc.name]
+		target_doc.billed_percentage = to_make_invoice_per_map[source_doc.name]
 
 		if source_doc.serial_no and source_parent.per_billed > 0:
 			target_doc.serial_no = get_delivery_note_serial_no(source_doc.item_code,
 				target_doc.qty, source_parent.name)
 
 	def get_pending_qty(item_row):
+
 		pending_qty = item_row.qty - invoiced_qty_map.get(item_row.name, 0)
+		pending_amount = item_row.amount - invoiced_amount_map.get(item_row.name ,0)
+		pending_amount_percentage = 100.0 * pending_amount / item_row.amount
 
-		returned_qty = 0
-		if returned_qty_map.get(item_row.name, 0) > 0:
-			returned_qty = flt(returned_qty_map.get(item_row.name, 0))
-			returned_qty_map[item_row.name] -= pending_qty
+		# handling partial invoices
+		pending_billed_percentage = 100.0 * pending_amount / item_row.amount
+		if pending_billed_percentage > 0:
+			# in case of partial invoice, our pending qty is still the same
+			pending_qty = item_row.qty
 
-		if returned_qty:
-			if returned_qty >= pending_qty:
-				pending_qty = 0
-				returned_qty -= pending_qty
-			else:
-				pending_qty -= returned_qty
-				returned_qty = 0
+		else:
+			returned_qty = 0
+			if returned_qty_map.get(item_row.name, 0) > 0:
+				returned_qty = flt(returned_qty_map.get(item_row.name, 0))
+				returned_qty_map[item_row.name] -= pending_qty
+
+			if returned_qty:
+				if returned_qty >= pending_qty:
+					pending_qty = 0
+					returned_qty -= pending_qty
+				else:
+					pending_qty -= returned_qty
+					returned_qty = 0
 
 		to_make_invoice_qty_map[item_row.name] = pending_qty
+		to_make_invoice_amt_map[item_row.name] = pending_amount
+		to_make_invoice_per_map[item_row.name] = pending_amount_percentage
 
 		return pending_qty
+
+	def get_pending_amt(item_row):
+		pending_amt = item_row.amount - invoiced_amt_map.get(item_row.name, 0)
+
+		#returned_qty = 0
+		#if returned_qty_map.get(item_row.name, 0) > 0:
+		#	returned_qty = flt(returned_qty_map.get(item_row.name, 0))
+		#	returned_qty_map[item_row.name] -= pending_qty
+
+		#if returned_qty:
+		#	if returned_qty >= pending_qty:
+		#		pending_qty = 0
+		#		returned_qty -= pending_qty
+		#	else:
+		#		pending_qty -= returned_qty
+		#		returned_qty = 0
+
+		to_make_invoice_amt_map[item_row.name] = pending_amt
+
+		return pending_amt
 
 	doc = get_mapped_doc("Delivery Note", source_name, {
 		"Delivery Note": {
