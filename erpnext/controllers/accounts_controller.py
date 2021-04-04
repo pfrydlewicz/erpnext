@@ -643,7 +643,7 @@ class AccountsController(TransactionBase):
 					allowance, item_allowance, global_qty_allowance, global_amount_allowance = \
 						get_allowance_for(item.item_code, item_allowance, global_qty_allowance, global_amount_allowance, "amount")
 
-					max_allowed_amt = flt(ref_amt * (100 + allowance) / 100)
+					max_allowed_amt = flt(ref_amt * (100 + allowance) / 100) / flt(item.billed_percentage / 100)
 
 					if total_billed_amt < 0 and max_allowed_amt < 0:
 						# while making debit note against purchase return entry(purchase receipt) getting overbill error

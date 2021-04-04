@@ -388,7 +388,7 @@ def get_invoiced_amount_map(delivery_note):
 	"""returns a map: {dn_detail: invoiced_amount}"""
 	invoiced_amount_map = {}
 
-	for dn_detail, b_amount in frappe.db.sql("""select dn_detail, billed_amount from `tabSales Invoice Item`
+	for dn_detail, b_amount in frappe.db.sql("""select dn_detail, billed_amt from `tabSales Invoice Item`
 		where delivery_note=%s and docstatus=1""", delivery_note):
 			if not invoiced_amount_map.get(dn_detail):
 				invoiced_amount_map[dn_detail] = 0
@@ -400,7 +400,7 @@ def get_invoiced_amt_map(delivery_note):
 	"""returns a map: {dn_detail: invoiced_amt}"""
 	invoiced_amt_map = {}
 
-	for dn_detail, amt in frappe.db.sql("""select dn_detail, billed_amount from `tabSales Invoice Item`
+	for dn_detail, amt in frappe.db.sql("""select dn_detail, billed_amt from `tabSales Invoice Item`
 		where delivery_note=%s and docstatus=1""", delivery_note):
 			if not invoiced_amt_map.get(dn_detail):
 				invoiced_amt_map[dn_detail] = 0

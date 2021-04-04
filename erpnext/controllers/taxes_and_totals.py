@@ -125,8 +125,8 @@ class calculate_taxes_and_totals(object):
 				item.net_amount = item.amount
 
 				if item.doctype in ['Sales Invoice Item']:
-					item.net_billed_amount = item.billed_amount
-					self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount", "billed_amount", "net_billed_amount"])
+					item.net_billed_amount = item.billed_amt
+					self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount", "billed_amt", "net_billed_amount"])
 				else:
 					self._set_in_company_currency(item, ["price_list_rate", "rate", "net_rate", "amount", "net_amount"])
 
@@ -236,9 +236,9 @@ class calculate_taxes_and_totals(object):
 			final_total = 0.0 # to support partial invoices
 			for item in self.doc.get("items"):
 				final_total += item.amount
-				self.doc.total += item.billed_amount
+				self.doc.total += item.billed_amt
 				self.doc.total_qty += item.qty
-				self.doc.base_total += item.base_billed_amount
+				self.doc.base_total += item.base_billed_amt
 				self.doc.net_total += item.net_billed_amount
 				self.doc.base_net_total += item.base_net_billed_amount
 

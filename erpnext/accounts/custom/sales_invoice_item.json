@@ -12,7 +12,7 @@
    },
   {
     "columns": 2,
-    "fieldname": "billed_amount",
+    "fieldname": "billed_amt",
     "fieldtype": "Currency",
     "in_list_view": 1,
     "label": "Billed Amount",
@@ -21,7 +21,7 @@
     "dt": "Sales Invoice Item"
    },
    {
-     "fieldname": "base_billed_amount",
+     "fieldname": "base_billed_amt",
      "fieldtype": "Currency",
      "label": "Base Billed Amount",
      "read_only": 1,
